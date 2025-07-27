@@ -3,33 +3,38 @@
 <head><meta charset="UTF-8" /><title>Channel ID Finder</title></head>
 <body>
 <script>
-  // Parsujemy input z URL
   const params = new URLSearchParams(window.location.search);
   const input = params.get("input");
 
-  // Twój klucz API z Google Cloud Console (musisz mieć własny)
   const API_KEY = "AIzaSyD1O4VTS83C4NhiKZ6YDPJ_nsgZqxDy7QY";
 
   async function findChannelId(nameOrUrl) {
     let channelName = nameOrUrl;
 
-    // Jeśli to link, wyciągnij część po slashu
     if (nameOrUrl.startsWith("http")) {
       try {
         const urlObj = new URL(nameOrUrl);
-        channelName = urlObj.pathname.replace(/^\/+/, ""); // usuń slash na początku
+        const path = urlObj.pathname.replace(/^\/+/, "");
+        if (path.startsWith("@")) {
+          channelName = path.substring(1);
+        } else if (path.startsWith("channel/UC")) {
+          return path.replace("channel/", "");
+        } else {
+          channelName = path;
+        }
       } catch {
         channelName = nameOrUrl;
       }
     }
 
-    // Jeśli zaczyna się od UC to to jest channelId
     if (channelName.startsWith("UC")) {
       return channelName;
     }
 
-    // Wywołanie API: wyszukaj kanał po nazwie (może to być @nazwa lub zwykła nazwa)
-    // https://developers.google.com/youtube/v3/docs/search/list
+    if (channelName.startsWith("@")) {
+      channelName = channelName.substring(1);
+    }
+
     const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=channel&q=${encodeURIComponent(channelName)}&key=${API_KEY}`;
 
     try {
@@ -38,8 +43,7 @@
       const data = await res.json();
 
       if (data.items && data.items.length > 0) {
-        // zwróć pierwsze znalezione channelId
-        return data.items[0].snippet.channelId;
+        return data.items[0].id.channelId;
       } else {
         throw new Error("Nie znaleziono kanału");
       }
@@ -51,10 +55,9 @@
   (async () => {
     try {
       const channelId = await findChannelId(input);
-      // Wyślij do rodzica channelId
-      window.parent.postMessage({channelId}, window.location.origin);
+      window.parent.postMessage({ channelId }, "*");
     } catch (error) {
-      window.parent.postMessage({error: error.message}, window.location.origin);
+      window.parent.postMessage({ error: error.message }, "*");
     }
   })();
 </script>
