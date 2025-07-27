@@ -1,62 +1,76 @@
 <!DOCTYPE html>
 <html>
-<head><meta charset="UTF-8" /><title>Channel ID Finder</title></head>
+<head>
+  <meta charset="UTF-8" />
+  <title>YouTube Channel ID Finder + Uploads</title>
+  <style>
+    body {
+      background: #fffbe6;
+      font-family: sans-serif;
+      max-width: 700px;
+      margin: 30px auto;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    input, button {
+      padding: 10px;
+      font-size: 16px;
+      width: 80%;
+      margin-top: 10px;
+    }
+    iframe {
+      width: 100%;
+      height: 200px;
+      margin-top: 20px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+    #result {
+      margin-top: 20px;
+      font-weight: bold;
+      color: green;
+    }
+  </style>
+</head>
 <body>
+  <h1>Znajdź Channel ID i otwórz playlistę Uploads</h1>
+  <p>Wpisz link do kanału YouTube lub nazwę z @</p>
+  <input id="channelInput" type="text" placeholder="np. https://www.youtube.com/@dnzrecords lub dnzrecords" />
+  <br />
+  <button onclick="loadIframe()">Znajdź Channel ID</button>
+  <div id="result"></div>
+
+  <iframe id="finderFrame" src="" title="Channel ID Finder"></iframe>
+
 <script>
-  // Parsujemy input z URL
-  const params = new URLSearchParams(window.location.search);
-  const input = params.get("input");
-
-  // Twój klucz API z Google Cloud Console (musisz mieć własny)
-  const API_KEY = "AIzaSyD1O4VTS83C4NhiKZ6YDPJ_nsgZqxDy7QY";
-
-  async function findChannelId(nameOrUrl) {
-    let channelName = nameOrUrl;
-
-    // Jeśli to link, wyciągnij część po slashu
-    if (nameOrUrl.startsWith("http")) {
-      try {
-        const urlObj = new URL(nameOrUrl);
-        channelName = urlObj.pathname.replace(/^\/+/, ""); // usuń slash na początku
-      } catch {
-        channelName = nameOrUrl;
-      }
+  function loadIframe() {
+    const val = document.getElementById('channelInput').value.trim();
+    if (!val) {
+      alert("Wpisz link lub nazwę kanału");
+      return;
     }
-
-    // Jeśli zaczyna się od UC to to jest channelId
-    if (channelName.startsWith("UC")) {
-      return channelName;
-    }
-
-    // Wywołanie API: wyszukaj kanał po nazwie (może to być @nazwa lub zwykła nazwa)
-    // https://developers.google.com/youtube/v3/docs/search/list
-    const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=channel&q=${encodeURIComponent(channelName)}&key=${API_KEY}`;
-
-    try {
-      const res = await fetch(searchUrl);
-      if (!res.ok) throw new Error("API error: " + res.status);
-      const data = await res.json();
-
-      if (data.items && data.items.length > 0) {
-        // zwróć pierwsze znalezione channelId
-        return data.items[0].snippet.channelId;
-      } else {
-        throw new Error("Nie znaleziono kanału");
-      }
-    } catch (e) {
-      throw e;
-    }
+    // Zakoduj w URL, żeby przekazać do iframe
+    const url = "finder.html?input=" + encodeURIComponent(val);
+    document.getElementById('finderFrame').src = url;
+    document.getElementById('result').innerText = "Ładuję i szukam channel ID...";
   }
 
-  (async () => {
-    try {
-      const channelId = await findChannelId(input);
-      // Wyślij do rodzica channelId
-      window.parent.postMessage({channelId}, window.location.origin);
-    } catch (error) {
-      window.parent.postMessage({error: error.message}, window.location.origin);
+  // Nasłuchujemy wiadomości z iframe
+  window.addEventListener("message", function(event) {
+    if (event.origin !== window.location.origin) return; // zabezpieczenie
+    const data = event.data;
+    if (data.channelId) {
+      const playlistId = "UU" + data.channelId.substring(2);
+      const playlistUrl = `https://www.youtube.com/playlist?list=${playlistId}`;
+      document.getElementById('result').innerHTML = 
+        `Znaleziono Channel ID: <code>${data.channelId}</code><br>` +
+        `<a href="${playlistUrl}" target="_blank">Otwórz playlistę Uploads</a>`;
+    } else if (data.error) {
+      document.getElementById('result').innerText = "Błąd: " + data.error;
     }
-  })();
+  });
 </script>
 </body>
 </html>
