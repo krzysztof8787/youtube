@@ -66,7 +66,7 @@
       const playlistUrl = `https://www.youtube.com/playlist?list=${playlistId}`;
       document.getElementById('result').innerHTML = 
         `Znaleziono Channel ID: <code>${data.channelId}</code><br>` +
-        `<a href="${playlistUrl}" target="_blank">Odtwórz playlistę Uploads</a>`;
+        `<a href="${playlistUrl}" target="_blank">Odtwórz przesłane przez kanał</a>`;
     } else if (data.error) {
       document.getElementById('result').innerText = "Błąd: " + data.error;
     }
