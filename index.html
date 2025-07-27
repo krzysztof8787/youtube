@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8" />
-  <title>YouTube Channel Uploads Viever</title>
+  <title>YouTube Channel Uploads Viewer</title>
   <style>
     body {
       background: #fffbe6;
@@ -26,6 +26,7 @@
       margin-top: 20px;
       border: 1px solid #ccc;
       border-radius: 8px;
+      display: none; /* <-- Ukryty domyślnie */
     }
     #result {
       margin-top: 20px;
@@ -51,9 +52,12 @@
       alert("Wpisz link lub nazwę kanału");
       return;
     }
-    // Zakoduj w URL, żeby przekazać do iframe
+
     const url = "finder.html?input=" + encodeURIComponent(val);
-    document.getElementById('finderFrame').src = url;
+    const iframe = document.getElementById('finderFrame');
+    iframe.src = url;
+    iframe.style.display = "block"; // pokaż iframe tylko po kliknięciu
+
     document.getElementById('result').innerText = "Ładuję i szukam channel ID...";
   }
 
