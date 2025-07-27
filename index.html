@@ -2,70 +2,76 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>YouTube Uploads Linker</title>
-<style>
-  body {
-    background-color: #fffbe6; /* lekko żółte tło */
-    font-family: sans-serif;
-    max-width: 600px;
-    margin: 50px auto;
-    text-align: center;
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.05);
-  }
-  input {
-    width: 90%;
-    padding: 10px;
-    font-size: 16px;
-  }
-  button {
-    padding: 10px 20px;
-    font-size: 16px;
-    margin-top: 10px;
-  }
-  #status {
-    margin-top: 20px;
-  }
-</style>
+  <title>YouTube — Uploady kanału</title>
+  <style>
+    body {
+      background-color: #fffbe6;
+      font-family: sans-serif;
+      max-width: 600px;
+      margin: 50px auto;
+      text-align: center;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.05);
+    }
+    input {
+      width: 90%;
+      padding: 10px;
+      font-size: 16px;
+      margin-top: 10px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      margin-top: 10px;
+    }
+    #status {
+      margin-top: 20px;
+    }
+  </style>
 </head>
 <body>
-  <h2>🔗 YouTube — channel player:</h2>
-  <p>Podaj link do kanału YouTube (np. https://www.youtube.com/@dnzrecords):</p>
+  <h2>🔗 YouTube — pokaż tylko i wyłącznie wszystkie filmy przesłane na ten kanał (uploady):</h2>
+
+  <p>Wklej <strong>Channel ID</strong> lub link do kanału (np. <code>https://www.youtube.com/@dnzrecords</code> albo <code>https://www.youtube.com/channel/UCCrC_cImA1gromiUX-mESIA</code>):</p>
+
   <input id="channelInput" type="text" placeholder="https://www.youtube.com/@..." />
   <br>
-  <button onclick="go()">Odtwórz filmy załadowane na kanał (Uploads)</button>
+  <button onclick="go()">Pokaż playlistę</button>
+
   <p id="status"></p>
 
+  <p style="margin-top: 40px; font-size: 14px; color: #555;">
+    💡 <strong>Najlepiej działa z 
+    <a href="https://brave.com/download" target="_blank" style="color: #d2691e; text-decoration: underline;">Brave</a></strong>, ponieważ ta przeglądarka automatycznie blokuje reklamy w YouTube.
+  </p>
+
 <script>
-async function go() {
+function go() {
   const input = document.getElementById('channelInput').value.trim();
   const status = document.getElementById('status');
-  if (!input) return alert("Wklej link do kanału.");
 
-  status.innerText = "⏳ Pobieram dane...";
-
-  try {
-    const response = await fetch(input);
-    const html = await response.text();
-    const match = html.match(/"channelId":"(UC[\w-]{22})"/);
-    if (!match) {
-      status.innerText = "❌ Nie udało się znaleźć channel ID.";
-      return;
-    }
-    const channelId = match[1];
-    const playlistId = "UU" + channelId.substring(2);
-    const playlistUrl = `https://www.youtube.com/playlist?list=${playlistId}`;
-    status.innerHTML = `✅ Otwieranie playlisty:<br><a href="${playlistUrl}" target="_blank">${playlistUrl}</a>`;
-    window.location.href = playlistUrl;
-  } catch (err) {
-    status.innerText = "❌ Błąd: " + err.message;
+  if (!input) {
+    status.innerText = "❌ Wklej link do kanału lub channel ID.";
+    return;
   }
+
+  let channelId = "";
+
+  if (input.includes("channel/UC")) {
+    channelId = input.split("channel/")[1].split(/[/?#]/)[0];
+  } else if (input.startsWith("UC")) {
+    channelId = input;
+  } else {
+    status.innerText = "❌ Nieobsługiwany format. Wklej pełny link do kanału (z /channel/...) lub channel ID.";
+    return;
+  }
+
+  const playlistId = "UU" + channelId.substring(2);
+  const playlistUrl = `https://www.youtube.com/playlist?list=${playlistId}`;
+
+  window.location.href = playlistUrl;
 }
 </script>
-<p style="margin-top: 40px; font-size: 14px; color: #555;">
-  💡 <strong>Najlepiej działa z 
-  <a href="https://brave.com/download" target="_blank" style="color: #d2691e; text-decoration: underline;">Brave</a></strong>, ponieważ ta przeglądarka automatycznie blokuje reklamy w YouTube.
-</p>
 </body>
 </html>
