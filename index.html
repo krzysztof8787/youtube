@@ -27,6 +27,7 @@
     }
     #status {
       margin-top: 20px;
+      color: #aa0000;
     }
   </style>
 </head>
@@ -35,7 +36,7 @@
 
   <p>Wklej <strong>Channel ID</strong> lub link do kanału (np. <code>https://www.youtube.com/@dnzrecords</code> albo <code>https://www.youtube.com/channel/UCCrC_cImA1gromiUX-mESIA</code>):</p>
 
-  <input id="channelInput" type="text" placeholder="https://www.youtube.com/@..." />
+  <input id="channelInput" type="text" placeholder="https://www.youtube.com/..." />
   <br>
   <button onclick="go()">Pokaż playlistę</button>
 
@@ -56,6 +57,14 @@ function go() {
     return;
   }
 
+  if (input.includes("@")) {
+    status.innerHTML = `
+      ❌ Format <code>@nazwa</code> jest obecnie nieobsługiwany automatycznie.<br>
+      Wejdź na kanał, przejdź do zakładki <strong>O kanale</strong> i skopiuj pełny link z <code>/channel/...</code> lub channel ID.
+    `;
+    return;
+  }
+
   let channelId = "";
 
   if (input.includes("channel/UC")) {
@@ -63,7 +72,7 @@ function go() {
   } else if (input.startsWith("UC")) {
     channelId = input;
   } else {
-    status.innerText = "❌ Nieobsługiwany format. Wklej pełny link do kanału (z /channel/...) lub channel ID.";
+    status.innerText = "❌ Nieobsługiwany format. Wklej link z /channel/ lub channel ID (UC...).";
     return;
   }
 
