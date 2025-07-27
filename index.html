@@ -26,12 +26,25 @@
       margin-top: 20px;
       border: 1px solid #ccc;
       border-radius: 8px;
-      display: none; /* <-- Ukryty domyślnie */
+      display: none; /* Ukryty domyślnie */
     }
     #result {
       margin-top: 20px;
       font-weight: bold;
       color: green;
+    }
+    #braveHint {
+      margin-top: 40px;
+      padding: 10px;
+      border-radius: 8px;
+      background: #fff2cc;
+      font-size: 14px;
+      border: 1px solid #f0c040;
+    }
+    #braveHint a {
+      color: #b37400;
+      text-decoration: underline;
+      font-weight: bold;
     }
   </style>
 </head>
@@ -44,6 +57,11 @@
   <div id="result"></div>
 
   <iframe id="finderFrame" src="" title="Channel ID Finder"></iframe>
+
+  <div id="braveHint">
+    YouTube bez reklam najlepiej działa w przeglądarce 
+    <a href="https://brave.com/pl/" target="_blank">Brave</a>.
+  </div>
 
 <script>
   function loadIframe() {
