@@ -1,86 +1,76 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <title>YouTube — Uploady kanału</title>
+  <meta charset="UTF-8" />
+  <title>YouTube Channel ID Finder + Uploads</title>
   <style>
     body {
-      background-color: #fffbe6;
+      background: #fffbe6;
       font-family: sans-serif;
-      max-width: 600px;
-      margin: 50px auto;
-      text-align: center;
+      max-width: 700px;
+      margin: 30px auto;
       padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.05);
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      text-align: center;
     }
-    input {
-      width: 90%;
+    input, button {
       padding: 10px;
       font-size: 16px;
+      width: 80%;
       margin-top: 10px;
     }
-    button {
-      padding: 10px 20px;
-      font-size: 16px;
-      margin-top: 10px;
-    }
-    #status {
+    iframe {
+      width: 100%;
+      height: 200px;
       margin-top: 20px;
-      color: #aa0000;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+    #result {
+      margin-top: 20px;
+      font-weight: bold;
+      color: green;
     }
   </style>
 </head>
 <body>
-  <h2>🔗 YouTube — pokaż tylko i wyłącznie wszystkie filmy przesłane na ten kanał (uploady):</h2>
+  <h1>Znajdź Channel ID i otwórz playlistę Uploads</h1>
+  <p>Wpisz link do kanału YouTube lub nazwę z @</p>
+  <input id="channelInput" type="text" placeholder="np. https://www.youtube.com/@dnzrecords lub dnzrecords" />
+  <br />
+  <button onclick="loadIframe()">Znajdź Channel ID</button>
+  <div id="result"></div>
 
-  <p>Wklej <strong>Channel ID</strong> lub link do kanału (np. <code>https://www.youtube.com/@dnzrecords</code> albo <code>https://www.youtube.com/channel/UCCrC_cImA1gromiUX-mESIA</code>):</p>
-
-  <input id="channelInput" type="text" placeholder="https://www.youtube.com/..." />
-  <br>
-  <button onclick="go()">Pokaż playlistę</button>
-
-  <p id="status"></p>
-
-  <p style="margin-top: 40px; font-size: 14px; color: #555;">
-    💡 <strong>Najlepiej działa z 
-    <a href="https://brave.com/download" target="_blank" style="color: #d2691e; text-decoration: underline;">Brave</a></strong>, ponieważ ta przeglądarka automatycznie blokuje reklamy w YouTube.
-  </p>
+  <iframe id="finderFrame" src="" title="Channel ID Finder"></iframe>
 
 <script>
-function go() {
-  const input = document.getElementById('channelInput').value.trim();
-  const status = document.getElementById('status');
-
-  if (!input) {
-    status.innerText = "❌ Wklej link do kanału lub channel ID.";
-    return;
+  function loadIframe() {
+    const val = document.getElementById('channelInput').value.trim();
+    if (!val) {
+      alert("Wpisz link lub nazwę kanału");
+      return;
+    }
+    // Zakoduj w URL, żeby przekazać do iframe
+    const url = "finder.html?input=" + encodeURIComponent(val);
+    document.getElementById('finderFrame').src = url;
+    document.getElementById('result').innerText = "Ładuję i szukam channel ID...";
   }
 
-  if (input.includes("@")) {
-    status.innerHTML = `
-      ❌ Format <code>@nazwa</code> jest obecnie nieobsługiwany automatycznie.<br>
-      Wejdź na kanał, przejdź do zakładki <strong>O kanale</strong> i skopiuj pełny link z <code>/channel/...</code> lub channel ID.
-    `;
-    return;
-  }
-
-  let channelId = "";
-
-  if (input.includes("channel/UC")) {
-    channelId = input.split("channel/")[1].split(/[/?#]/)[0];
-  } else if (input.startsWith("UC")) {
-    channelId = input;
-  } else {
-    status.innerText = "❌ Nieobsługiwany format. Wklej link z /channel/ lub channel ID (UC...).";
-    return;
-  }
-
-  const playlistId = "UU" + channelId.substring(2);
-  const playlistUrl = `https://www.youtube.com/playlist?list=${playlistId}`;
-
-  window.location.href = playlistUrl;
-}
+  // Nasłuchujemy wiadomości z iframe
+  window.addEventListener("message", function(event) {
+    if (event.origin !== window.location.origin) return; // zabezpieczenie
+    const data = event.data;
+    if (data.channelId) {
+      const playlistId = "UU" + data.channelId.substring(2);
+      const playlistUrl = `https://www.youtube.com/playlist?list=${playlistId}`;
+      document.getElementById('result').innerHTML = 
+        `Znaleziono Channel ID: <code>${data.channelId}</code><br>` +
+        `<a href="${playlistUrl}" target="_blank">Otwórz playlistę Uploads</a>`;
+    } else if (data.error) {
+      document.getElementById('result').innerText = "Błąd: " + data.error;
+    }
+  });
 </script>
 </body>
 </html>
