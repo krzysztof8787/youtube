@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8" /><title>Channel ID Finder</title></head>
+<body>
+<script>
+  // Parsujemy input z URL
+  const params = new URLSearchParams(window.location.search);
+  const input = params.get("input");
+
+  // Twój klucz API z Google Cloud Console (musisz mieć własny)
+  const API_KEY = "AIzaSyD1O4VTS83C4NhiKZ6YDPJ_nsgZqxDy7QY";
+
+  async function findChannelId(nameOrUrl) {
+    let channelName = nameOrUrl;
+
+    // Jeśli to link, wyciągnij część po slashu
+    if (nameOrUrl.startsWith("http")) {
+      try {
+        const urlObj = new URL(nameOrUrl);
+        channelName = urlObj.pathname.replace(/^\/+/, ""); // usuń slash na początku
+      } catch {
+        channelName = nameOrUrl;
+      }
+    }
+
+    // Jeśli zaczyna się od UC to to jest channelId
+    if (channelName.startsWith("UC")) {
+      return channelName;
+    }
+
+    // Wywołanie API: wyszukaj kanał po nazwie (może to być @nazwa lub zwykła nazwa)
+    // https://developers.google.com/youtube/v3/docs/search/list
+    const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=channel&q=${encodeURIComponent(channelName)}&key=${API_KEY}`;
+
+    try {
+      const res = await fetch(searchUrl);
+      if (!res.ok) throw new Error("API error: " + res.status);
+      const data = await res.json();
+
+      if (data.items && data.items.length > 0) {
+        // zwróć pierwsze znalezione channelId
+        return data.items[0].snippet.channelId;
+      } else {
+        throw new Error("Nie znaleziono kanału");
+      }
+    } catch (e) {
+      throw e;
+    }
+  }
+
+  (async () => {
+    try {
+      const channelId = await findChannelId(input);
+      // Wyślij do rodzica channelId
+      window.parent.postMessage({channelId}, window.location.origin);
+    } catch (error) {
+      window.parent.postMessage({error: error.message}, window.location.origin);
+    }
+  })();
+</script>
+</body>
+</html>
